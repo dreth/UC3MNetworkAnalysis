@@ -1,0 +1,16 @@
+---
+title: 'The GitHub Network'
+author: 'Limingrui Wan, Danyu Zhang & Daniel Alonso'
+date: 'May 2nd, 2021'
+output: 'pdf_document'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+collapse = TRUE,
+comment = '#>',
+fig.path = './figures/'
+)
+knitr::knit_engines$set(julia = JuliaCall::eng_juliacall)
+options(JULIA_HOME = '/home/dreth/julia/bin')
+```
