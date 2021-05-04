@@ -14,3 +14,143 @@ fig.path = './figures/'
 knitr::knit_engines$set(julia = JuliaCall::eng_juliacall)
 options(JULIA_HOME = '/home/dreth/julia/bin')
 ```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(igraph)
+```
+
+# 1. Explain the main details of the network.
+
+## Description of the network
+
+Our dataset corresponds to the [GitHub.com](https://github.com) network of developers. This data was collected from the public API in June 2019. Each node is a developer with at least 10 repositories starred and each edge is a mutual follower relationship between them. The vertex features are extracted based on the location, repositories starred, employer and e-mail address.
+
+## Source
+
+The dataset was optained from the [Stanford University SNAP website.](http://snap.stanford.edu/data/github-social.html). This dataset originally come from a paper published the 28th of september, 2019 called [Multi-scale Attributed Node Embedding](https://arxiv.org/abs/1909.13021). The github repository for that project can be found [here](https://github.com/benedekrozemberczki/MUSAE).
+
+## Main characteristics of the network
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+nodes <- read.csv('./data/git_web_ml/musae_git_target.csv', header=T, as.is=T)
+edges <- read.csv('./data/git_web_ml/musae_git_edges.csv', header=T, as.is=T)
+github <- graph_from_data_frame(d=edges, vertices=nodes, directed=F)
+```
+
+### Vertices/Nodes
+
+Our network has the following amount of vertices/nodes:
+
+\small
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+gorder(github)
+```
+
+\normalsize
+
+#### Degrees of vertices
+
+##### Top vertex degrees 
+
+The vertices with the largest degrees (top 10) are:
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+sort(degree(github), decreasing=T)[1:5]
+```
+
+##### Who are they?
+
+As these are individuals, we could peak inside GitHub.com and check the public profile of these individuals.
+
+- Top user: **dalinhuang99**
+
+The reason why this user might have so many followers could be the fact that he's followed a very large amount of users (160k as of May 4th 2021).
+
+The user also seems to be a top 4% Stack overflow participant. However, the user has had no activity since July 17th 2018.
+
+
+
+##### Bottom vertex degrees
+
+The following amount of users have a degree of exactly 1 (one follower):
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+length(degree(github)[degree(github) == 1])
+```
+
+##### Sum of vertex degrees 
+
+Calculated as follows:
+
+$$\sum_{v=1}^{N} d_v = 2L$$ 
+
+Corresponds to twice the size of the graph:
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+sum(degree(github))
+```
+
+##### Average degree
+
+Calculated as follows:
+
+$$\frac{1}{N} * \sum_{v=1}^{N} d_v = 2\frac{L}{N}$$
+
+Represents the average amount of mutual followers among all users in the network (nodes):
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+mean(degree(github))
+```
+
+##### Degree distribution
+
+We can see the degree distribution of our graph as follows:
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+tbl <- table(degree(github))
+plot(tbl/(sum(tbl)), col='blue', main='Degree distribution of the github network', xlab='Degree', ylab='Frequency', type='h')
+```
+
+We can notice that our degree distribution is extremely right-skewed.
+
+The reason for this we can clearly see by looking at a table of our degree frequencies (top 10):
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+tbl[1:10]
+```
+
+We can see the rightmost tail of our plot (top 50 frequencies), excluding the biggest outliers.
+
+Here we can see a bit over 95% of the data points in our graph:
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+plot(tbl[1:50]/(sum(tbl[1:50])), col='blue', main='Degree distribution of the github network (excluding outliers)', xlab='Degree', ylab='Frequency', type='h')
+```
+
+### Edges/Links
+
+Our network has the following amount of edges (the size of the graph):
+
+\small
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+gsize(github)
+```
+
+\normalsize
+
+The edges of the github network are not weighted, because the edges represent a mutual follower relationship on github, which would essentially always have a weight of 1. 
+
+Additionally, our network does not have any loop, therefore it's not a multigraph. 
+
+
+
+
+# 3. Analyze the degree sequence and distribution of the network. Identify relevant nodes and explain what information seems to be useful for understanding the network.
+
+
+
+# 4. Is the graph connected? Obtain components, diameter, farther vertices,...
+
+# 5. Obtain graphical representations of the network following the different methods seen in the markdown documents. In particular, find the best possible representation and try to improve it as much as possible.
