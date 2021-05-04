@@ -19,8 +19,6 @@ options(JULIA_HOME = '/home/dreth/julia/bin')
 library(igraph)
 ```
 
-# 1. Explain the main details of the network.
-
 ## Description of the network
 
 Our dataset corresponds to the [GitHub.com](https://github.com) network of developers. This data was collected from the public API in June 2019. Each node is a developer with at least 10 repositories starred and each edge is a mutual follower relationship between them. The vertex features are extracted based on the location, repositories starred, employer and e-mail address.
@@ -29,11 +27,11 @@ Our dataset corresponds to the [GitHub.com](https://github.com) network of devel
 
 The dataset was optained from the [Stanford University SNAP website.](http://snap.stanford.edu/data/github-social.html). This dataset originally come from a paper published the 28th of september, 2019 called [Multi-scale Attributed Node Embedding](https://arxiv.org/abs/1909.13021). The github repository for that project can be found [here](https://github.com/benedekrozemberczki/MUSAE).
 
-## Main characteristics of the network
+## Characteristics of the network
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
-nodes <- read.csv('./data/git_web_ml/musae_git_target.csv', header=T, as.is=T)
-edges <- read.csv('./data/git_web_ml/musae_git_edges.csv', header=T, as.is=T)
+nodes <- read.csv('../data/git_web_ml/musae_git_target.csv', header=T, as.is=T)
+edges <- read.csv('../data/git_web_ml/musae_git_edges.csv', header=T, as.is=T)
 github <- graph_from_data_frame(d=edges, vertices=nodes, directed=F)
 ```
 
@@ -55,9 +53,15 @@ gorder(github)
 
 The vertices with the largest degrees (top 10) are:
 
+\small
+
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 sort(degree(github), decreasing=T)[1:5]
 ```
+
+\normalsize
+
+\newpage
 
 ##### Who are they?
 
@@ -69,7 +73,11 @@ The reason why this user might have so many followers could be the fact that he'
 
 The user also seems to be a top 4% Stack overflow participant. However, the user has had no activity since July 17th 2018.
 
+- Second top user: **nfultz**
 
+This next user seems to have several useful tutorials/content in his github pages hosted static site. Also seems to have several active repositories 
+
+\newpage
 
 ##### Bottom vertex degrees
 
@@ -107,7 +115,7 @@ mean(degree(github))
 
 We can see the degree distribution of our graph as follows:
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=4.5}
 tbl <- table(degree(github))
 plot(tbl/(sum(tbl)), col='blue', main='Degree distribution of the github network', xlab='Degree', ylab='Frequency', type='h')
 ```
@@ -116,17 +124,38 @@ We can notice that our degree distribution is extremely right-skewed.
 
 The reason for this we can clearly see by looking at a table of our degree frequencies (top 10):
 
+\small
+
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 tbl[1:10]
 ```
+
+\newpage
 
 We can see the rightmost tail of our plot (top 50 frequencies), excluding the biggest outliers.
 
 Here we can see a bit over 95% of the data points in our graph:
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
+&nbsp;
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=10}
 plot(tbl[1:50]/(sum(tbl[1:50])), col='blue', main='Degree distribution of the github network (excluding outliers)', xlab='Degree', ylab='Frequency', type='h')
 ```
+
+\newpage
+
+We can also create a histogram and density of our degree distributions, but for practicality and visual purposes, we avoid plotting any frequency above 46 edges.
+
+&nbsp;
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=10}
+par(mfrow=c(2,1))
+degs <- degree(github)
+hist(degs[degs <= 46], breaks=10, main='Histogram for degrees with <46 edges (95% of the data)')
+plot(density(degs[degs <= 46]), main='Density plot for the previous histogram')
+```
+
+\newpage
 
 ### Edges/Links
 
@@ -140,17 +169,47 @@ gsize(github)
 
 \normalsize
 
-The edges of the github network are not weighted, because the edges represent a mutual follower relationship on github, which would essentially always have a weight of 1. 
+The edges of the GitHub network are not weighted, because the edges represent a mutual follower relationship on GitHub, which would essentially always have a weight of 1. 
 
 Additionally, our network does not have any loop, therefore it's not a multigraph. 
 
+### Connectedness
 
+We can notice that our graph is connected, therefore every vertex is reachable from every other:
 
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+is_connected(github)
+```
 
-# 3. Analyze the degree sequence and distribution of the network. Identify relevant nodes and explain what information seems to be useful for understanding the network.
+### Diameter
 
+Diameter is the shortest distance between the two most distant nodes in the network and with the *diameter* function we can obtain the value of the longest geodesic distance in the network.
 
+This diameter corresponds to the following set of 12 nodes:
 
-# 4. Is the graph connected? Obtain components, diameter, farther vertices,...
+```{r, echo=FALSE, warning=FALSE, message=FALSE, eval=FALSE}
+get_diameter(github)
+diameter(github)
+```
 
-# 5. Obtain graphical representations of the network following the different methods seen in the markdown documents. In particular, find the best possible representation and try to improve it as much as possible.
+**haochenli** --> **ChiuMungZitAlexander** --> **IrvingZha0** --> **harryworld** --> **NigelEarle** --> **getify** --> **indrajithbandara** --> **kaizenagility** --> **artificialsoph** --> **kemacdonald** --> **jpriniski** --> **SOUMAJYOTI**
+
+With a diameter of 11 (longest geodesic distance).
+
+#### Farthest vertices
+
+The farthest vertices corresponds to the previously mentioned first and last node, which are:
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, eval=FALSE}
+farthest_vertices(github)
+```
+
+- Start: **haochenli**
+
+- End:  **SOUMAJYOTI**
+
+#### Adjacency Matrix
+
+For size purposes, it makes no sense to show the adjancency matrix of this network, as it would turn out to be a matrix of size 37,700 by 37,700.
+
+## Graphical representations
