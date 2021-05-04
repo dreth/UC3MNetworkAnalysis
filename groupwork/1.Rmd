@@ -1,0 +1,123 @@
+---
+title: "Untitled"
+author: "Limingrui Wan"
+date: "2021/5/3"
+output: html_document
+---
+
+# question5 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache = TRUE)
+```
+
+## Obtain graphical representations of the network following the different methods seen in the markdown documents. 
+```{r message=FALSE, warning=FALSE}
+library(igraph)
+```
+
+we have learned several methods of graphical representatives, but none of them can be used directly for a big network. Unfortunately, our graph has 30k nodes and 300k edges, is obviously a big graph.
+so we can only make a subgraph of the first 200 nodes and those edges with these nodes. If we choose more nodes, the graph will be too crowded, if we choose less nodes, the graph will possibly contains too few edges.
+but we can hardly find useful information from these plots.
+so the analyze is only attached to the subgraph itself but not the original big network.
+
+```{r}
+edges=read.csv("edges.csv")
+vertices=read.csv("target.csv")
+g <- graph_from_data_frame(edges, directed=FALSE, vertices=vertices)
+
+g_sub=induced_subgraph(g,1:200)
+
+```
+
+### circular layout
+
+The circular and star layouts appear to confirm that the number of edges is not very large. This is a **sparse network**,relatively small compared with the number of vertices.
+```{r}
+plot.igraph(g_sub,layout=layout_in_circle,main="circular layout")
+```
+
+### star layout
+
+```{r}
+plot.igraph(g_sub,layout=layout_as_star,main="star layout")
+```
+
+### tree layout
+```{r}
+plot.igraph(g_sub,layout=layout_as_tree,main="star layout")
+```
+
+### grid layout
+
+```{r}
+plot.igraph(g_sub,layout=layout_on_grid,main="grid layout")
+```
+
+### sphere layout
+
+```{r}
+plot.igraph(g_sub,layout=layout_on_sphere,main="sphere layout")
+```
+
+### Davidson-Harel layout
+
+```{r, cache=TRUE}
+plot.igraph(g_sub,layout=layout_with_dh)
+```
+
+### Fruchtermann-Reingold layout
+
+```{r}
+plot.igraph(g_sub,layout=layout_with_fr,main="Fruchterman-Reingold layout")
+```
+
+### GEM force-directed layout
+
+```{r}
+plot.igraph(g_sub,layout=layout_with_gem,main="GEM force-directed layout")
+```
+
+### Graphopt layout
+
+```{r}
+plot.igraph(g_sub,layout=layout_with_graphopt,main="graphopt layout")
+```
+
+### Kamada-Kawai layout
+
+```{r}
+plot.igraph(g_sub,layout=layout_with_kk,main="Kamada-Kawai layout")
+```
+
+
+
+
+
+
+### Multidimensional Scaling layout
+
+```{r}
+plot.igraph(g_sub,layout=layout_with_mds,main="Karate network with multidimensional scaling layout")
+```
+
+## In particular, find the best possible representation and try to improve it as much as possible.
+
+we choose to use Davidson-Harel layout, since there and only two type of nodes, the user is a web or  machine learning developer, we wish to identify them with shapes and colors. And we adjust the size of nodes and edges to make the plot clearer.
+
+
+```{r}
+V(g_sub)$shape <- "circle"
+V(g_sub)[V(g_sub)$ml_target==1]$shape<- "rectangle"
+
+V(g_sub)[V(g_sub)$ml_target==1]$color<- 'yellow'
+V(g_sub)[V(g_sub)$ml_target==0]$color<- 'blue'
+
+E(g_sub)$width=5
+
+plot.igraph(g_sub,layout=layout_with_dh,main="Davidson-Harel layout",
+            vertex.size=5,vertex.label.cex=0.4)
+
+```
+
+

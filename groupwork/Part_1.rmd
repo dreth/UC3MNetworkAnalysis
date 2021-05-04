@@ -52,7 +52,7 @@ gorder(github)
 
 ##### Top vertex degrees 
 
-The vertices with the largest degrees (top 10) are:
+The vertices with the largest degrees (top 5) are:
 
 \small
 
@@ -230,3 +230,140 @@ For size purposes, it makes no sense to show the adjancency matrix of this netwo
 \newpage
 
 ## Graphical representations
+
+We have learned several methods to generate graphical representations of graphs, but none of them can be used directly for a big network. Unfortunately, our graph has 37.7k nodes and 298k edges, which is a rather large graph.
+
+So we can only make a subgraph of the first 400 nodes and those edges with these nodes. If we choose more nodes, the graph will be too crowded, if we choose less nodes, the graph will possibly contains too few edges.
+
+But we can hardly find useful information from these plots.
+
+So the analysis is only attached to the subgraph itself but not the original big network.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+g_sub=subgraph.edges(github,1:400,1:400)
+```
+
+We have taken the liberty to plot a slightly more complex graph than the one shown in the presentation, as we had more time for processing.
+
+The graph's connectedness is unfortunately not perfectly showcased for this subgraph.
+
+\newpage
+
+### circular layout
+
+The circular and star layouts appear to confirm that the number of edges is not very large. This is a **sparse network**,relatively small compared with the number of vertices.
+&nbsp;
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=10}
+plot.igraph(g_sub,layout=layout_in_circle,main="Circular layout", vertex.label=NA, vertex.size=2)
+```
+
+\newpage
+
+### Star layout
+&nbsp;
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=10}
+plot.igraph(g_sub,layout=layout_as_star,main="Star layout", vertex.label=NA, vertex.size=2)
+```
+
+\newpage
+
+### Tree layout
+&nbsp;
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=10}
+plot.igraph(g_sub,layout=layout_as_tree,main="Tree layout", vertex.label=NA, vertex.size=2)
+```
+
+\newpage
+
+### Grid layout
+&nbsp;
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=10}
+plot.igraph(g_sub,layout=layout_on_grid,main="Grid layout", vertex.label=NA, vertex.size=2)
+```
+
+\newpage
+
+### Sphere layout
+&nbsp;
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=10}
+plot.igraph(g_sub,layout=layout_on_sphere,main="Sphere layout", vertex.label=NA, vertex.size=2)
+```
+
+\newpage
+
+### Davidson-Harel layout
+&nbsp;
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, cache=TRUE, fig.width=10, fig.height=10}
+plot.igraph(g_sub,layout=layout_with_dh, vertex.label=NA, vertex.size=2)
+```
+
+\newpage
+
+### Fruchtermann-Reingold layout
+&nbsp;
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=10}
+plot.igraph(g_sub,layout=layout_with_fr,main="Fruchterman-Reingold layout", vertex.label=NA, vertex.size=2)
+```
+
+\newpage
+
+### GEM force-directed layout
+&nbsp;
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=10}
+plot.igraph(g_sub,layout=layout_with_gem,main="GEM force-directed layout", vertex.label=NA, vertex.size=2)
+```
+
+\newpage
+
+### Graphopt layout
+&nbsp;
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=10}
+plot.igraph(g_sub,layout=layout_with_graphopt,main="Graphopt layout", vertex.label=NA, vertex.size=2)
+```
+
+\newpage
+
+### Kamada-Kawai layout
+&nbsp;
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=10}
+plot.igraph(g_sub,layout=layout_with_kk,main="Kamada-Kawai layout", vertex.label=NA, vertex.size=2)
+```
+
+\newpage
+
+### Multidimensional Scaling layout
+&nbsp;
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=10}
+plot.igraph(g_sub,layout=layout_with_mds,main="Multidimensional scaling layout", vertex.label=NA, vertex.size=2)
+```
+
+\newpage
+
+### Our choice to represent the graph
+
+We choose to use Davidson-Harel layout, since there and only two type of nodes, the user is a web or  machine learning developer, we wish to identify them with shapes and colors. And we adjust the size of nodes and edges to make the plot clearer.
+&nbsp;
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=10}
+V(g_sub)$shape <- "circle"
+V(g_sub)[V(g_sub)$ml_target==1]$shape<- "rectangle"
+
+V(g_sub)[V(g_sub)$ml_target==1]$color<- 'yellow'
+V(g_sub)[V(g_sub)$ml_target==0]$color<- 'blue'
+
+E(g_sub)$width=1
+
+plot.igraph(g_sub,layout=layout_with_dh,main="Davidson-Harel layout",vertex.label=NA, vertex.size=2)
+```
+
+
