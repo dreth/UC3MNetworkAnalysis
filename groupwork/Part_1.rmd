@@ -75,7 +75,21 @@ The user also seems to be a top 4% Stack overflow participant. However, the user
 
 - Second top user: **nfultz**
 
-This next user seems to have several useful tutorials/content in his github pages hosted static site. Also seems to have several active repositories 
+This next user seems to have several useful tutorials/content in his github pages hosted static site. Also seems to have several active repositories where the user does some collaborative work.
+
+There is no immediate apparent reason as to why the user has garnered such a large following.
+
+- Third top user: **addyosmani**
+
+This user has actually garnered a larger following than shown on the dataset. The user is an engineer at Google, working specifically on Google Chrome and the user has a significantly larger following on other social media (259.5k on twitter).
+
+- Fourth top user: **Bunlong**
+
+The user seems to be very active on github, committing code basically every day. The user also follows about 24.4k other users, and has created a couple projects that seem to be somewhat public as well.
+
+- Fifth top user: **gabrielpconceicao**
+
+The user also seems to be following a very large amount of users (31.8k following), not as active as the rest in the list, so the amount of followers could've come from following a large amount as well.
 
 \newpage
 
