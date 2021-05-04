@@ -3,6 +3,7 @@ title: 'The GitHub Network'
 author: 'Limingrui Wan, Danyu Zhang & Daniel Alonso'
 date: 'May 2nd, 2021'
 output: 'pdf_document'
+urlcolor: blue
 ---
 
 ```{r setup, include=FALSE}
@@ -225,5 +226,7 @@ farthest_vertices(github)
 #### Adjacency Matrix
 
 For size purposes, it makes no sense to show the adjancency matrix of this network, as it would turn out to be a matrix of size 37,700 by 37,700.
+
+\newpage
 
 ## Graphical representations
