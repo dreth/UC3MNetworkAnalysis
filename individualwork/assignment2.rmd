@@ -1,0 +1,354 @@
+---
+title: 'Individual Assignment 2'
+author: 'Daniel Alonso'
+date: 'May 23th, 2021'
+output: 'pdf_document'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+collapse = TRUE,
+comment = '#>',
+fig.path = './figures/'
+)
+knitr::knit_engines$set(julia = JuliaCall::eng_juliacall)
+options(JULIA_HOME = '/home/dreth/julia/bin')
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(igraph)
+library(igraphdata)
+```
+
+# Exercise 1
+
+## (a) Closeness centrality
+
+**The YouTube network**: Perhaps a good example of how closeness centrality could be useful is the YouTube network. From using YouTube regularly, I know that there's several content creators with a large following on many areas of entertainment, education etc. For example, if we take a specific group of influencers, like Python programming educators on youtube, we can mentally visualize how the followers of many of these are also the followers of the others. 
+
+This way, if we visualize a reasonably large subset of the network (as the network is probably immensely large, and maybe too big to even properly visualize), we can maybe see who are the largest influencers in the network in terms of how close they are to the rest of the nodes (followers), given that these nodes will sometimes be exclusively connected to one of the channels within that specific topic, but more commonly the followers of one channel will also follow multiple creators within that topic.
+
+This way we can identify clusters of content creators which create similar types of content.
+
+## (b) Betweenness centrality
+
+**Airport/Road network**: Betweenness centrality helps identify nodes where a lot of potential traffic could come as a way to move from one node to another in the network. This way we can identify airports with a very large amount of connections, which are often very busy airports. For example, Madrid, Paris, London, Frankfurt, Singapore, Atlanta airports are all notoriously busy, but they're also very important connection hubs to redirect air traffic to other locations. For these, we would find a reasonably large betweenness centrality measure.
+
+Also, the same would apply for a network of roads + counties, where we can see the most important intersections, those that should theoretically be the best link among different counties in a city. As for an example pertaining Spain and other European countries, roundabouts could represent a good analogy for busy intersections, assuming there's significantly larger/busier roundabouts in the city given their presence as connection hubs between different node/location clusters.
+
+## (c) Eigenvector centrality or PageRank centrality
+
+**Udemy network**: If this data were to be publicly available, I would envision it as courses + instructors + buyers of courses type dataset, where we connect nodes with different shapes, buyers could be circles, and a connection between a buyer and a course (squares) means the buyer has purchased the course, then courses could be connected to instructors (triagles), meaning the instructor is the owner/creator of said course. A bit of a complex idea, but this way we would have sort of 2 sub-networks, one of instructors + courses and one of buyers + courses. 
+
+The idea in my mind, is that Eigenvector Centrality could allow us to show what instructors are the most influential in the network, given that an instructor with several high-quality courses, which have pulled a significant amount of users towards 1 course, could also probably pull a significant amount of users towards multiple courses. This way, in my mind, I can envision how the eigenvector centrality measure could tell us the most influential/highest earning instructors within the platform, among clusters of high earning instructors for specific categories.
+
+Pagerank centrality would do something similar, however it would simply show us high earning instructors in general.
+
+# Exercise 2
+
+## Hierarchical clustering
+
+First we load up the dataset and compute the matrix of distances as follows:
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE}
+data(karate)
+d <- as.dist(distances(karate))
+```
+
+### Using method='ward.D'
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=8}
+clust <- hclust(d, method='ward.D')
+plot(clust)
+```
+
+#### Modularity of clustering
+
+
+\footnotesize
+
+#### K = 2
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+sol <- cutree(clust, k=2)
+modularity(karate, sol)
+```
+
+\normalsize
+
+This partition has a decent modularity, slightly worse than that of edge betweenness community detection, but not by much. Worse than the rest of the ones seen in the topic 3 part 2 notebook.
+
+\footnotesize
+
+#### K = 3
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+sol <- cutree(clust, k=3)
+modularity(karate, sol)
+```
+
+\normalsize
+
+This one is better than using k=2 and than edge betweenness community detection, but worse than the other methods in the other methods as well.
+
+\footnotesize
+
+#### K = 4
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+sol <- cutree(clust, k=4)
+modularity(karate, sol)
+```
+
+\normalsize
+
+There is an improvement here as well, not huge, but reasonable, still worse than the rest of the methods, but improving on the results using k=3.
+
+\footnotesize
+
+#### K = 5
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+sol <- cutree(clust, k=5)
+modularity(karate, sol)
+```
+
+\normalsize
+
+The modularity using k=5 is worse compared to k=2.
+
+
+\footnotesize
+
+#### K = 6
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+sol <- cutree(clust, k=6)
+modularity(karate, sol)
+```
+
+\normalsize
+
+This one is also worse than k=2.
+
+### Using method='single'
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=8}
+clust <- hclust(d, method='single')
+plot(clust)
+```
+
+
+#### Modularity of clustering
+
+
+\footnotesize
+
+#### K = 2
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+sol <- cutree(clust, k=2)
+modularity(karate, sol)
+```
+
+\normalsize
+
+
+
+\footnotesize
+
+#### K = 3
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+sol <- cutree(clust, k=3)
+modularity(karate, sol)
+```
+
+\normalsize
+
+
+\footnotesize
+
+#### K = 4
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+sol <- cutree(clust, k=4)
+modularity(karate, sol)
+```
+
+\normalsize
+
+
+\footnotesize
+
+#### K = 5
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+sol <- cutree(clust, k=5)
+modularity(karate, sol)
+```
+
+\normalsize
+
+
+\footnotesize
+
+#### K = 6
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+sol <- cutree(clust, k=6)
+modularity(karate, sol)
+```
+
+\normalsize
+
+For all k=2 up to k=6, the models using the *single* method do not improve upon the methods evaluated in class, and also do not improve vs utilizing *ward.D*.
+
+
+### Using method='complete'
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=8}
+clust <- hclust(d, method='complete')
+plot(clust)
+```
+
+
+#### Modularity of clustering
+
+\footnotesize
+
+#### K = 2
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+sol <- cutree(clust, k=2)
+modularity(karate, sol)
+```
+
+\normalsize
+
+The result for this version also improves upon edge betweenness community detection reasonably, but still less good than using k=4 with *ward.D*.
+
+\footnotesize
+
+#### K = 3
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+sol <- cutree(clust, k=3)
+modularity(karate, sol)
+```
+
+\normalsize
+
+Same as the previous result, improving upon the result from edge betweenness, but still less good than that of using k=4 with *ward.D*, and along with the others, less effective than other methods which optimize modularity.
+
+\footnotesize
+
+#### K = 4
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+sol <- cutree(clust, k=4)
+modularity(karate, sol)
+```
+
+\normalsize
+
+
+\footnotesize
+
+#### K = 5
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+sol <- cutree(clust, k=5)
+modularity(karate, sol)
+```
+
+\normalsize
+
+
+\footnotesize
+
+#### K = 6
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+sol <- cutree(clust, k=6)
+modularity(karate, sol)
+```
+
+\normalsize
+
+We can see that the modularity decays for this method as increases as k increases.
+
+
+### Using method='average'
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=8}
+clust <- hclust(d, method='average')
+plot(clust)
+```
+
+
+#### Modularity of clustering
+
+
+\footnotesize
+
+#### K = 2
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+sol <- cutree(clust, k=2)
+modularity(karate, sol)
+```
+
+\normalsize
+
+
+
+\footnotesize
+
+#### K = 3
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+sol <- cutree(clust, k=3)
+modularity(karate, sol)
+```
+\normalsize
+
+
+\footnotesize
+
+#### K = 4
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+sol <- cutree(clust, k=4)
+modularity(karate, sol)
+```
+
+\normalsize
+
+
+\footnotesize
+
+#### K = 5
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+sol <- cutree(clust, k=5)
+modularity(karate, sol)
+```
+
+\normalsize
+
+
+\footnotesize
+
+#### K = 6
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+sol <- cutree(clust, k=6)
+modularity(karate, sol)
+```
+
+\normalsize
+
+All the results using the *average* method perform worse than those of *ward.D* and the methods previously seen in class.
+
+However, there is a noticeable difference between using k=2 and k>2, returning a significantly worse result for k=2 than the rest.
