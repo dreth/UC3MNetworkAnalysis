@@ -4,7 +4,7 @@ Projects/homeworks done during the Network Analysis course taken at UC3M
 
 Lecturer for this class was [Pedro Galeano San Miguel](https://portal.uc3m.es/portal/page/portal/dpto_estadistica/personal/pedro_galeano_san_miguel)
 
-# Dataset source/authors
+## Dataset source/authors
 
 I did not construct or author the GitHub network dataset used for the group project, it was all obtained from the [Stanford University SNAP database](http://snap.stanford.edu/data/github-social.html).
 
