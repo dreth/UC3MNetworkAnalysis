@@ -1,7 +1,7 @@
 ---
 title: 'The GitHub Network'
 author: 'Limingrui Wan, Danyu Zhang & Daniel Alonso'
-date: 'May 2nd, 2021'
+date: 'May 29th, 2021'
 output: 'pdf_document'
 urlcolor: blue
 ---
@@ -19,6 +19,8 @@ options(JULIA_HOME = '/home/dreth/julia/bin')
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 library(igraph)
 ```
+
+# Part 1
 
 ## Description of the network
 
@@ -366,4 +368,79 @@ E(g_sub)$width=1
 plot.igraph(g_sub,layout=layout_with_dh,main="Davidson-Harel layout",vertex.label=NA, vertex.size=2)
 ```
 
+# Part 2
+
+## Centrality measures
+
+The first thing we shall do in part 2 is obtain the centrality measures for our network. 
+
+### Vertex degree
+
+As we saw before, according to vertex degree, which is technically a very simple but still quite informative centrality measure. We see that the top vertices are as follows:
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+github_verts <- sort.int(degree(github), decreasing=TRUE, index.return=TRUE)
+github_verts$x[1:5]
+```
+
+Given that the network is not directed or weighted, the measures utilizing *strength* will be equal to those of using *degree*, therefore our top 5 remains the same from either perspective.
+
+### Closeness centrality
+
+Given the size of our graph and the computational intensity of the calculation of certain centrality measures like closeness centrality, we will take a subgraph of our graph using *subgraph.edges*, which preserves a given amount of edges along with vertices.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+g_sub <- subgraph.edges(github, 1:10000, 1:5000)
+g_closeness <- closeness(g_sub, normalized=TRUE)
+sort.int(g_closeness, decreasing=TRUE)[1:5]
+```
+
+We can see the largest values for closeness centrality correspond to some of the top people we saw before with the highest vertex degree. Here we see that there might be variation given that we took a subset of the graph.
+
+Computing the vertex degree again for our subset returns the following:
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+github_verts <- sort.int(degree(g_sub), decreasing=TRUE, index.return=TRUE)
+github_verts$x[1:5]
+```
+
+Which shows that yes, there might be a correlation between what the measure of vertex degree considers more central and what closeness centrality considers more central. We notice that there are some repeated individuals, but not necessarily the same.
+
+### Betweenness centrality
+
+As for the betweenness centrality, we will also use the same subset of the graph as we used for closeness centrality, and this yields the following resulting top 5 individuals:
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+g_sub <- subgraph.edges(github, 1:10000, 1:5000)
+g_betweenness <- betweenness(g_sub, normalized=TRUE)
+sort.int(g_betweenness, decreasing=TRUE)[1:5]
+```
+
+This shows that *dalinhuang99*, for example, hasn't just amassed a large amount of followers/following, but also represents a central position for movement among nodes within the graph. He also shares a similar position to *nfultz*, which given his own following (although smaller than *dalinhuang99*'s), still boasts an important position according to his betweenness centrality score. So much so, that the scores are nearly identical, even though the amount of connections is significantly higher for *dalinhuang99* (about 33% higher).
+
+### Eigenvector centrality
+
+Obtaining the eigenvector centrality measures for the nodes we see something interesting:
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+g_sub <- subgraph.edges(github, 1:10000, 1:5000)
+g_eigen <- eigen_centrality(g_sub, scale=FALSE)
+sort.int(g_eigen$vector, decreasing=TRUE)[1:5]
+```
+
+We can see that eigenvector centrality clearly uses different considerations, where our most central users according to the previous two centralities somewhat coincided in the two top users in vertex degree, here we see others that, while present in previous' centralities top, are now at the top. *dalinhuang99* still retains the 2nd-highest position according to this measure, however, there's a significant difference with the top user *chokcoco*. Also trailing behind is *nfultz*, which was top 2 in vertex degree.
+
+### Pagerank centrality
+
+As for pagerank centrality we obtain the following top:
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+g_sub <- subgraph.edges(github, 1:10000, 1:5000)
+g_pagerank <- page_rank(g_sub)
+sort.int(g_pagerank$vector, decreasing=TRUE)[1:5]
+```
+
+Pagerank centrality brings a top that is also somewhat different, but coincides more strongly with eigenvector centrality than many of the others.
+
+We see that both share the top top user, which is *chokcoco*, with nearly double the score of *dalinhuang99* (the top user by vertex degree). Also this type of centrality introduces *tamimibrahim17*, which does not even belong in the top 10 users by vertex degree. This could mean that his positioning within the graph could be reasonably better than most others in the top along with *popomore*, which also shows as a top user according to eigenvector centrality.
 

@@ -1,0 +1,367 @@
+---
+title: 'The GitHub Network'
+author: 'Limingrui Wan, Danyu Zhang & Daniel Alonso'
+date: 'May 2nd, 2021'
+output: 'pdf_document'
+urlcolor: blue
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+collapse = TRUE,
+comment = '#>',
+fig.path = './figures/'
+)
+knitr::knit_engines$set(julia = JuliaCall::eng_juliacall)
+options(JULIA_HOME = '/home/dreth/julia/bin')
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(igraph)
+```
+
+## Description of the network
+
+Our dataset corresponds to the [GitHub.com](https://github.com) network of developers. This data was collected from the public API in June 2019. Each node is a developer with at least 10 repositories starred and each edge is a mutual follower relationship between them. The vertex features are extracted based on the location, repositories starred, employer and e-mail address.
+
+## Source
+
+The dataset was optained from the [Stanford University SNAP website.](http://snap.stanford.edu/data/github-social.html). This dataset originally come from a paper published the 28th of september, 2019 called [Multi-scale Attributed Node Embedding](https://arxiv.org/abs/1909.13021). The github repository for that project can be found [here](https://github.com/benedekrozemberczki/MUSAE).
+
+## Characteristics of the network
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+nodes <- read.csv('../data/git_web_ml/musae_git_target.csv', header=T, as.is=T)
+edges <- read.csv('../data/git_web_ml/musae_git_edges.csv', header=T, as.is=T)
+github <- graph_from_data_frame(d=edges, vertices=nodes, directed=F)
+```
+
+### Vertices/Nodes
+
+Our network has the following amount of vertices/nodes:
+
+\small
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+gorder(github)
+```
+
+\normalsize
+
+#### Degrees of vertices
+
+##### Top vertex degrees 
+
+The vertices with the largest degrees (top 5) are:
+
+\small
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+sort(degree(github), decreasing=T)[1:5]
+```
+
+\normalsize
+
+\newpage
+
+##### Who are they?
+
+As these are individuals, we could peak inside GitHub.com and check the public profile of these individuals.
+
+- Top user: **dalinhuang99**
+
+The reason why this user might have so many followers could be the fact that he's followed a very large amount of users (160k as of May 4th 2021).
+
+The user also seems to be a top 4% Stack overflow participant. However, the user has had no activity since July 17th 2018.
+
+- Second top user: **nfultz**
+
+This next user seems to have several useful tutorials/content in his github pages hosted static site. Also seems to have several active repositories where the user does some collaborative work.
+
+There is no immediate apparent reason as to why the user has garnered such a large following.
+
+- Third top user: **addyosmani**
+
+This user has actually garnered a larger following than shown on the dataset. The user is an engineer at Google, working specifically on Google Chrome and the user has a significantly larger following on other social media (259.5k on twitter).
+
+- Fourth top user: **Bunlong**
+
+The user seems to be very active on github, committing code basically every day. The user also follows about 24.4k other users, and has created a couple projects that seem to be somewhat public as well.
+
+- Fifth top user: **gabrielpconceicao**
+
+The user also seems to be following a very large amount of users (31.8k following), not as active as the rest in the list, so the amount of followers could've come from following a large amount as well.
+
+\newpage
+
+##### Bottom vertex degrees
+
+The following amount of users have a degree of exactly 1 (one follower):
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+length(degree(github)[degree(github) == 1])
+```
+
+##### Sum of vertex degrees 
+
+Calculated as follows:
+
+$$\sum_{v=1}^{N} d_v = 2L$$ 
+
+Corresponds to twice the size of the graph:
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+sum(degree(github))
+```
+
+##### Average degree
+
+Calculated as follows:
+
+$$\frac{1}{N} * \sum_{v=1}^{N} d_v = 2\frac{L}{N}$$
+
+Represents the average amount of mutual followers among all users in the network (nodes):
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+mean(degree(github))
+```
+
+##### Degree distribution
+
+We can see the degree distribution of our graph as follows:
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=4.5}
+tbl <- table(degree(github))
+plot(tbl/(sum(tbl)), col='blue', main='Degree distribution of the github network', xlab='Degree', ylab='Frequency', type='h')
+```
+
+We can notice that our degree distribution is extremely right-skewed.
+
+The reason for this we can clearly see by looking at a table of our degree frequencies (top 10):
+
+\small
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+tbl[1:10]
+```
+
+\newpage
+
+We can see the rightmost tail of our plot (top 50 frequencies), excluding the biggest outliers.
+
+Here we can see a bit over 95% of the data points in our graph:
+
+&nbsp;
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=10}
+plot(tbl[1:50]/(sum(tbl[1:50])), col='blue', main='Degree distribution of the github network (excluding outliers)', xlab='Degree', ylab='Frequency', type='h')
+```
+
+\newpage
+
+We can also create a histogram and density of our degree distributions, but for practicality and visual purposes, we avoid plotting any frequency above 46 edges.
+
+&nbsp;
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=10}
+par(mfrow=c(2,1))
+degs <- degree(github)
+hist(degs[degs <= 46], breaks=10, main='Histogram for degrees with <46 edges (95% of the data)')
+plot(density(degs[degs <= 46]), main='Density plot for the previous histogram')
+```
+
+\newpage
+
+### Edges/Links
+
+Our network has the following amount of edges (the size of the graph):
+
+\small
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+gsize(github)
+```
+
+\normalsize
+
+The edges of the GitHub network are not weighted, because the edges represent a mutual follower relationship on GitHub, which would essentially always have a weight of 1. 
+
+Additionally, our network does not have any loop, therefore it's not a multigraph. 
+
+### Connectedness
+
+We can notice that our graph is connected, therefore every vertex is reachable from every other:
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+is_connected(github)
+```
+
+### Diameter
+
+Diameter is the shortest distance between the two most distant nodes in the network and with the *diameter* function we can obtain the value of the longest geodesic distance in the network.
+
+This diameter corresponds to the following set of 12 nodes:
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, eval=FALSE}
+get_diameter(github)
+diameter(github)
+```
+
+**haochenli** --> **ChiuMungZitAlexander** --> **IrvingZha0** --> **harryworld** --> **NigelEarle** --> **getify** --> **indrajithbandara** --> **kaizenagility** --> **artificialsoph** --> **kemacdonald** --> **jpriniski** --> **SOUMAJYOTI**
+
+With a diameter of 11 (longest geodesic distance).
+
+#### Farthest vertices
+
+The farthest vertices corresponds to the previously mentioned first and last node, which are:
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, eval=FALSE}
+farthest_vertices(github)
+```
+
+- Start: **haochenli**
+
+- End:  **SOUMAJYOTI**
+
+#### Adjacency Matrix
+
+For size purposes, it makes no sense to show the adjancency matrix of this network, as it would turn out to be a matrix of size 37,700 by 37,700.
+
+\newpage
+
+## Graphical representations
+
+We have learned several methods to generate graphical representations of graphs, but none of them can be used directly for a big network. Unfortunately, our graph has 37.7k nodes and 298k edges, which is a rather large graph.
+
+So we can only make a subgraph of the first 400 nodes and those edges with these nodes. If we choose more nodes, the graph will be too crowded, if we choose less nodes, the graph will possibly contains too few edges.
+
+But we can hardly find useful information from these plots.
+
+So the analysis is only attached to the subgraph itself but not the original big network.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+g_sub=subgraph.edges(github,1:400,1:400)
+```
+
+We have taken the liberty to plot a slightly more complex graph than the one shown in the presentation, as we had more time for processing.
+
+The graph's connectedness is unfortunately not perfectly showcased for this subgraph.
+
+\newpage
+
+### circular layout
+
+The circular and star layouts appear to confirm that the number of edges is not very large. This is a **sparse network**,relatively small compared with the number of vertices.
+&nbsp;
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=10}
+plot.igraph(g_sub,layout=layout_in_circle,main="Circular layout", vertex.label=NA, vertex.size=2)
+```
+
+\newpage
+
+### Star layout
+&nbsp;
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=10}
+plot.igraph(g_sub,layout=layout_as_star,main="Star layout", vertex.label=NA, vertex.size=2)
+```
+
+\newpage
+
+### Tree layout
+&nbsp;
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=10}
+plot.igraph(g_sub,layout=layout_as_tree,main="Tree layout", vertex.label=NA, vertex.size=2)
+```
+
+\newpage
+
+### Grid layout
+&nbsp;
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=10}
+plot.igraph(g_sub,layout=layout_on_grid,main="Grid layout", vertex.label=NA, vertex.size=2)
+```
+
+\newpage
+
+### Sphere layout
+&nbsp;
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=10}
+plot.igraph(g_sub,layout=layout_on_sphere,main="Sphere layout", vertex.label=NA, vertex.size=2)
+```
+
+\newpage
+
+### Davidson-Harel layout
+&nbsp;
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, cache=TRUE, fig.width=10, fig.height=10}
+plot.igraph(g_sub,layout=layout_with_dh, vertex.label=NA, vertex.size=2)
+```
+
+\newpage
+
+### Fruchtermann-Reingold layout
+&nbsp;
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=10}
+plot.igraph(g_sub,layout=layout_with_fr,main="Fruchterman-Reingold layout", vertex.label=NA, vertex.size=2)
+```
+
+\newpage
+
+### GEM force-directed layout
+&nbsp;
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=10}
+plot.igraph(g_sub,layout=layout_with_gem,main="GEM force-directed layout", vertex.label=NA, vertex.size=2)
+```
+
+\newpage
+
+### Graphopt layout
+&nbsp;
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=10}
+plot.igraph(g_sub,layout=layout_with_graphopt,main="Graphopt layout", vertex.label=NA, vertex.size=2)
+```
+
+\newpage
+
+### Kamada-Kawai layout
+&nbsp;
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=10}
+plot.igraph(g_sub,layout=layout_with_kk,main="Kamada-Kawai layout", vertex.label=NA, vertex.size=2)
+```
+
+\newpage
+
+### Multidimensional Scaling layout
+&nbsp;
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=10}
+plot.igraph(g_sub,layout=layout_with_mds,main="Multidimensional scaling layout", vertex.label=NA, vertex.size=2)
+```
+
+\newpage
+
+### Our choice to represent the graph
+
+We choose to use Davidson-Harel layout, since there and only two type of nodes, the user is a web or  machine learning developer, we wish to identify them with shapes and colors. And we adjust the size of nodes and edges to make the plot clearer.
+&nbsp;
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=10}
+V(g_sub)$shape <- "circle"
+V(g_sub)[V(g_sub)$ml_target==1]$shape<- "rectangle"
+
+V(g_sub)[V(g_sub)$ml_target==1]$color<- 'yellow'
+V(g_sub)[V(g_sub)$ml_target==0]$color<- 'blue'
+
+E(g_sub)$width=1
+
+plot.igraph(g_sub,layout=layout_with_dh,main="Davidson-Harel layout",vertex.label=NA, vertex.size=2)
+```
