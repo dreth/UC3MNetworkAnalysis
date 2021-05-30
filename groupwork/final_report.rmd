@@ -641,7 +641,7 @@ We will start with the Erdös and Rényi model.
 
 We first generate 1000 networks from the Erdös and Rényi model with N=470 vertices and L=500 edges. Then, for each network, we run the five community detection algorithms and select the number of communities detected by each of them.
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE, eval=FALSE}
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
 n_trials <- 200
 num_comm_ER_fg <- vector(mode="numeric",length=n_trials)
 num_comm_ER_lo <- vector(mode="numeric",length=n_trials)
@@ -671,7 +671,7 @@ Now, we use the degree sequence and generate 1000 networks from the generalized 
 
 Then, for each network, we run the six community detection algorithms and select the number of communities detected by each of them.
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE, eval=FALSE}
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
 set.seed(10)
 num_comm_G_fg <- vector(mode="numeric",length=n_trials)
 num_comm_G_lo <- vector(mode="numeric",length=n_trials)
@@ -837,11 +837,11 @@ for (i in 1 : n_trials){
 ```
 
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
+```{r, echo=FALSE, warning=FALSE, message=FALSE, results='hide'}
 transitivity(g_sub)
 ```
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
+```{r, echo=FALSE, warning=FALSE, message=FALSE, results='hide'}
 dist <- distances(g_sub)
 mean(dist[lower.tri(dist,diag=FALSE)])
 
