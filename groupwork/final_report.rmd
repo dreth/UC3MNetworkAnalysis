@@ -251,7 +251,7 @@ The graph's connectedness is unfortunately not perfectly showcased for this subg
 
 \newpage
 
-### circular layout
+### Circular layout
 
 The circular and star layouts appear to confirm that the number of edges is not very large. This is a **sparse network**,relatively small compared with the number of vertices.
 &nbsp;
@@ -370,6 +370,8 @@ plot.igraph(g_sub,layout=layout_with_dh,main="Davidson-Harel layout",vertex.labe
 
 # Part 2
 
+## Section 1: Centrality measures
+
 ## Centrality measures
 
 The first thing we shall do in part 2 is obtain the centrality measures for our network. 
@@ -443,4 +445,415 @@ sort.int(g_pagerank$vector, decreasing=TRUE)[1:5]
 Pagerank centrality brings a top that is also somewhat different, but coincides more strongly with eigenvector centrality than many of the others.
 
 We see that both share the top top user, which is *chokcoco*, with nearly double the score of *dalinhuang99* (the top user by vertex degree). Also this type of centrality introduces *tamimibrahim17*, which does not even belong in the top 10 users by vertex degree. This could mean that his positioning within the graph could be reasonably better than most others in the top along with *popomore*, which also shows as a top user according to eigenvector centrality.
+
+## Section 2: Characterizing network cohesion
+
+## Local density
+
+When dealing with such large graphs, we should compute coreness for local density instead of cliques. 
+
+### Coreness
+
+\footnotesize
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+github_cores <- coreness(github,mode="all")
+head(github_cores)
+```
+
+\normalsize
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=5}
+length(which(github_cores==max(github_cores)))
+hist(github_cores,col="blue",
+     main="Histogram for the k-cores in the Github network")
+```
+
+We can see that the max core value is 34, and basically higher the core value the fewer the nodes.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+max(github_cores)
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+edge_density(github)
+```
+
+We can see the density of this graph is very low, thus the nodes are considered to be scattered.
+
+We choose two nodes with the most connected edges to compare their density levels:
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+ego_dalin <- make_ego_graph(github,order=1,nodes=which(V(github)$name=="dalinhuang99"))
+edge_density(ego_dalin[[1]])
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+ego_nfultz <- make_ego_graph(github,order=1,nodes=which(V(github)$name=="nfultz"))
+edge_density(ego_nfultz[[1]])
+```
+
+User *dalinhuang99* has higher a degree value but a lower coreness value. it shows that more edges attached to him doesn't necessarily imply a high density level.
+
+
+### Connectivity
+
+\footnotesize
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+comps_weak <- igraph::components(github)
+comps_weak$no
+```
+
+\normalsize
+
+There are no isolated nodes in this graph, it's a connected graph. 
+
+## Community detection
+
+In this section we intend to split the graph into proper parts (communities), notice that not every method mentioned during the course is appropriate for a graph of this size.
+
+### Fast greedy method
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=7}
+github_fg <- cluster_fast_greedy(github)
+paste("the number of clusters is:",length(github_fg))
+paste("the modularity value is:",modularity(github_fg))
+barplot(log(sizes(github_fg)),col="deepskyblue2", main="Barplot of community sizes (log) with fast greedy")
+```
+
+\newpage
+
+### Louvain algorithm
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=7}
+github_lo <- cluster_louvain(github)
+paste("the number of clusters is:",length(github_lo))
+paste("the modularity value is:",modularity(github_lo))
+#jpeg(file='github network with Louvain algorithm.jpg')
+#plot(github_lo,github,main="github network with Louvain algorithm", vertex.label=NA,vertex.size=2,edge.width=NA)
+#dev.off()
+barplot(log(sizes(github_lo)),col="deepskyblue2", main="Barplot of community sizes (log) with Louvain algorithm")
+```
+
+\newpage
+
+### Label propagation method
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=7}
+github_lp <- cluster_label_prop(github,initial=as.vector(membership(github_lo)))
+paste("the number of clusters is:",length(github_lp))
+paste("the modularity value is:",modularity(github_lp))
+barplot(log(sizes(github_lp)),col="deepskyblue2", main="Barplot of community sizes (log) with label propagation")
+```
+
+\newpage
+
+### Walktrap algorithm 
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=7}
+github_wa <- cluster_walktrap(github)
+paste("the number of clusters is:",length(github_wa))
+paste("the modularity value is:",modularity(github_wa))
+barplot(log(sizes(github_wa)),col="deepskyblue2", main="Barplot of community sizes (log) with walktrap")
+```
+
+Among these methods, we consider Louvain algorithm the best.
+
+Fast greedy and walktrap methods provide too many clusters, and the modularity of the label propagation method is too close to 0.
+
+\newpage
+
+### Plotting the clustered network (using louvain clustering)
+
+![Clustering](louvain_clustering.jpg){width=50%}
+
+\newpage
+
+### Assortativity
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=7}
+degree_github <- igraph::degree(github)
+github_degrees <- matrix(NA,nrow=ecount(github),ncol=2)
+edges_github <- igraph::as_edgelist(github)
+for (i in 1:ecount(github)){github_degrees[i,] <- degree_github[edges_github[i,]]}
+plot(github_degrees,pch=19,col="deepskyblue2",main="Degree pairs for the github network", xlab="Degree",ylab="Degree")
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+assortativity_degree(github,V(github))
+```
+
+The the assortativity coefficient is -0.075. Consequently, the network looks neutral.
+
+## Section 3: Assessing the number of communities / small world models
+ 
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+set.seed(10)
+g_sub <- subgraph.edges(github, 1:500, 1:1000)
+deg <- degree(g_sub)
+color_1 <- "deepskyblue2"
+color_2 <- "indianred2"
+```
+
+### Number of communities
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+set.seed(10)
+options(warn=-1)
+sub_fg <- cluster_fast_greedy(g_sub)
+length(sub_fg)
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+sub_lo <- cluster_louvain(g_sub)
+length(sub_lo)
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+sub_lp <- cluster_label_prop(g_sub,initial=as.vector(membership(sub_lo)))
+length(sub_lp)
+
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+sub_eb <- cluster_edge_betweenness(g_sub,directed=FALSE)
+length(sub_eb)
+
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+sub_wa <- cluster_walktrap(g_sub)
+length(sub_wa)
+```
+
+For assessing the number of communities given by these solutions, we consider the Erdös and Rényi model and the generalized random graph model after fixing the degree sequence of the our network.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+set.seed(10)
+N <- vcount(g_sub)
+N
+L <- ecount(g_sub)
+L
+```
+
+We will start with the Erdös and Rényi model. 
+
+We first generate 1000 networks from the Erdös and Rényi model with N=470 vertices and L=500 edges. Then, for each network, we run the five community detection algorithms and select the number of communities detected by each of them.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, eval=FALSE}
+n_trials <- 200
+num_comm_ER_fg <- vector(mode="numeric",length=n_trials)
+num_comm_ER_lo <- vector(mode="numeric",length=n_trials)
+num_comm_ER_lp <- vector(mode="numeric",length=n_trials)
+num_comm_ER_eb <- vector(mode="numeric",length=n_trials)
+num_comm_ER_wa <- vector(mode="numeric",length=n_trials)
+options(warn=-1)
+for (i in 1 : n_trials){
+  ER <- sample_gnm(n=N,m=L)
+  cl_ER_fg <- cluster_fast_greedy(ER)
+  num_comm_ER_fg[i] <- length(cl_ER_fg)
+  cl_ER_lo <- cluster_louvain(ER)
+  num_comm_ER_lo[i] <- length(cl_ER_lo)
+  cl_ER_lp <- cluster_label_prop(ER,
+                    initial=as.vector(membership(cl_ER_lo)))
+  num_comm_ER_lp[i] <- length(cl_ER_lp)  
+  cl_ER_eb <- cluster_edge_betweenness(ER,directed=FALSE)
+  num_comm_ER_eb[i] <- length(cl_ER_eb)
+  cl_ER_wa <- cluster_walktrap(ER)
+  num_comm_ER_wa[i] <- length(cl_ER_wa)
+}
+options(warn=0)
+
+```
+
+Now, we use the degree sequence and generate 1000 networks from the generalized random graph model after fixing the degree sequence of the network with N=470 vertices. 
+
+Then, for each network, we run the six community detection algorithms and select the number of communities detected by each of them.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, eval=FALSE}
+set.seed(10)
+num_comm_G_fg <- vector(mode="numeric",length=n_trials)
+num_comm_G_lo <- vector(mode="numeric",length=n_trials)
+num_comm_G_lp <- vector(mode="numeric",length=n_trials)
+num_comm_G_eb <- vector(mode="numeric",length=n_trials)
+num_comm_G_wa <- vector(mode="numeric",length=n_trials)
+options(warn=-1)
+for (i in 1 : n_trials){
+  G <- sample_degseq(deg,method="vl")
+  cl_G_fg <- cluster_fast_greedy(G)
+  num_comm_G_fg[i] <- length(cl_G_fg)
+  cl_G_lo <- cluster_louvain(G)
+  num_comm_G_lo[i] <- length(cl_G_lo)
+  cl_G_lp <- cluster_label_prop(G,
+                    initial=as.vector(membership(cl_G_lo)))
+  num_comm_G_lp[i] <- length(cl_G_lp)  
+  cl_G_eb <- cluster_edge_betweenness(G,directed=FALSE)
+  num_comm_G_eb[i] <- length(cl_G_eb)
+  cl_G_wa <- cluster_walktrap(G)
+  num_comm_G_wa[i] <- length(cl_G_wa)
+}
+options(warn=0)
+```
+
+Once the simulations have finished, we can compare the different results obtained with each community detection algorithm with barplots:
+
+### Fast greedy Method
+
+The table shows the probability of obtaining different number of communities: 
+
+\tiny
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+comm_ER_G_fg <- c(num_comm_ER_fg,num_comm_G_fg)
+ind_comm_ER_G_fg <- c(rep(1,n_trials),rep(2,n_trials))
+freqs_comm_ER_G_fg <- table(ind_comm_ER_G_fg,comm_ER_G_fg) / n_trials
+freqs_comm_ER_G_fg
+```
+
+\normalsize
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=7}
+color_2 <- "indianred2"
+barplot(freqs_comm_ER_G_fg,beside=TRUE,col=c(color_1,color_2),
+        main="Fast greedy",
+        xlab="Number of communities",ylab="Relative frequencies",
+        legend=c("Same size","Same degree sequence"))
+```
+
+### Louvain Method
+
+\tiny
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+comm_ER_G_lo <- c(num_comm_ER_lo,num_comm_G_lo)
+ind_comm_ER_G_lo <- c(rep(1,n_trials),rep(2,n_trials))
+freqs_comm_ER_G_lo <- table(ind_comm_ER_G_lo,comm_ER_G_lo) / n_trials
+freqs_comm_ER_G_lo
+```
+
+\normalsize
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=7}
+barplot(freqs_comm_ER_G_lo,beside=TRUE,col=c(color_1,color_2),
+        main="Louvain",
+        xlab="Number of communities",ylab="Relative frequencies",
+        legend=c("Same size","Same degree sequence"))
+
+```
+
+
+### Label propagation Method
+
+\tiny
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+comm_ER_G_lp <- c(num_comm_ER_lp,num_comm_G_lp)
+ind_comm_ER_G_lp <- c(rep(1,n_trials),rep(2,n_trials))
+freqs_comm_ER_G_lp <- table(ind_comm_ER_G_lp,comm_ER_G_lp) / n_trials
+freqs_comm_ER_G_lp
+```
+
+\normalsize
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=7}
+barplot(freqs_comm_ER_G_lp,beside=TRUE,col=c(color_1,color_2),
+        main="Label propagation",
+        xlab="Number of communities",ylab="Relative frequencies",
+        legend=c("Same size","Same degree sequence"))
+
+```
+
+### Edge betweeness Method
+
+\tiny
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+comm_ER_G_eb <- c(num_comm_ER_eb,num_comm_G_eb)
+ind_comm_ER_G_eb <- c(rep(1,n_trials),rep(2,n_trials))
+freqs_comm_ER_G_eb <- table(ind_comm_ER_G_eb,comm_ER_G_eb) / n_trials
+freqs_comm_ER_G_eb
+```
+
+\normalsize
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=7}
+barplot(freqs_comm_ER_G_eb,beside=TRUE,col=c(color_1,color_2),
+        main="Edge betweenness",
+        xlab="Number of communities",ylab="Relative frequencies",
+        legend=c("Same size","Same degree sequence"))
+
+```
+
+### Walktrap Method
+
+\tiny
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+comm_ER_G_wa <- c(num_comm_ER_wa,num_comm_G_wa)
+ind_comm_ER_G_wa <- c(rep(1,n_trials),rep(2,n_trials))
+freqs_comm_ER_G_wa <- table(ind_comm_ER_G_wa,comm_ER_G_wa) / n_trials
+freqs_comm_ER_G_wa
+
+```
+
+\normalsize
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=7}
+barplot(freqs_comm_ER_G_wa,beside=TRUE,col=c(color_1,color_2),
+        main="Walktrap ",
+        xlab="Number of communities",ylab="Relative frequencies",
+        legend=c("Same size","Same degree sequence"))
+
+```
+
+From the barplots we can obtain the following conclusions: 
+
+1. Fast greedy method has selected 24 communities, however the barplot suggests that it has a very low frequency, so it seems that the solution is not appropriate. 
+
+2. Louvain has selected 21 communities, the barplot suggests a lower number with the networks of same size and larger number with the networks of same degree of sequences, so it is probably not appropriate number of communities to select. 
+
+3. Label propagation has selected 21 communities, the barplot suggests that 21 has very low frequency, so the solution might not be correct. 
+
+4. Edge betweeness has selected 23 communities, the barplot suggests that it might be a good option for the networks with same size but not with same degree sequences. 
+
+5. Walktrap selected 26 communities and the barplot suggests that it might be appropriate for the same sized networks, but not appropriate for the same degree sequences. 
+
+
+### Small world models
+
+In this part of the work, we will use the method to assess whether our github network has the small world property. For that, we generate a large number of random networks with the same number of vertices and edges than those of the github network. Then, for each network we obtain the clustering coefficient and the average path length.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+n_trials = 1000
+set.seed(10)
+num_tran <- vector(mode="numeric",length=n_trials)
+num_ave_path_length <- vector(mode="numeric",length=n_trials)
+for (i in 1 : n_trials){
+  ER_graph <- sample_gnm(n=N,m=L)
+  num_tran[i] <- transitivity(ER_graph)
+  num_ave_path_length[i] <- mean_distance(ER_graph)
+}
+```
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+transitivity(g_sub)
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+dist <- distances(g_sub)
+mean(dist[lower.tri(dist,diag=FALSE)])
+
+```
+
+Now we compare the results obtained with those of our own network. The average path length of the the subset of github network is around 7 which is in the middle of the histogram. However, the clustering coefficient is 0. Which suggests that our network may have the small world property.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.width=10, fig.height=7}
+par(mfrow=c(2,1))
+hist(num_tran,col=color_1,
+     xlab="Clustering coefficients",ylab="Density")
+hist(num_ave_path_length,col=color_2,
+     xlab="Average path length",ylab="Density")
+```
 
